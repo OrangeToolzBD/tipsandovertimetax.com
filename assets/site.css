@@ -218,3 +218,18 @@ footer.site p:last-child{color:#7c8996;font-weight:600}
 .no-js .reveal{opacity:1;transform:none}
 @media(prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none}}
 @media print{header.site,nav.site,footer.site,.calc-actions,.ad-slot,.calc-form{display:none!important}#calculator{border:0;padding:0;box-shadow:none}body{background:#fff;color:#000}}
+
+/* ── mobile hardening ─────────────────────────────────────────── */
+@media (max-width:560px){
+  .chip{position:static!important;left:auto;right:auto;bottom:auto;margin:16px 0 0;min-width:0;width:100%}
+  .hero .wrap{padding-top:38px}
+  h1{overflow-wrap:break-word}
+  .calc-summary{grid-template-columns:1fr}
+  nav.site{gap:0}
+  nav.site a{padding:8px 10px;font-size:.9rem}
+}
+@media (max-width:400px){
+  .wrap{padding-left:16px;padding-right:16px}
+  .btn{width:100%;justify-content:center}
+  .hero-cta{width:100%}
+}
