@@ -29,7 +29,7 @@ h1,h2,h3{font-family:var(--serif);font-weight:600;line-height:1.1;letter-spacing
 header.site{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--paper) 82%,transparent);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
 header.site .wrap{display:flex;align-items:center;justify-content:space-between;min-height:66px;gap:16px;flex-wrap:wrap}
 .logo{font-family:var(--serif);font-weight:700;font-size:1.3rem;letter-spacing:-.02em;text-decoration:none;color:var(--ink);display:inline-flex;align-items:center;gap:10px}
-.logo::before{content:"§";display:grid;place-items:center;width:32px;height:32px;border-radius:9px;background:var(--accent);color:#fff;font-family:var(--sans);font-weight:700;font-size:1rem;transform:rotate(-6deg)}
+.logo::before{content:"";width:40px;height:40px;background:url(logo.png) center/contain no-repeat;flex:none}
 nav.site{display:flex;flex-wrap:wrap;gap:2px}
 nav.site a{text-decoration:none;color:var(--muted);font-weight:600;font-size:.95rem;padding:8px 14px;border-radius:40px;transition:color .15s,background .15s}
 nav.site a:hover{color:var(--accent-ink);background:var(--accent-soft)}
