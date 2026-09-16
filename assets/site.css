@@ -178,6 +178,26 @@ table.data th{background:var(--paper);font-weight:700}
 .sources{font-size:.92rem;color:var(--muted)}
 .disclaimer{font-size:.88rem;color:var(--muted);background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);margin-top:30px;padding:14px 16px}
 .ad-slot{min-height:0}
+/* alternating content + image sections */
+.split{display:grid;grid-template-columns:1.05fr .95fr;gap:34px;align-items:center;margin:34px 0}
+.split .txt>h2{margin-top:0}
+.split .txt>p:last-child{margin-bottom:0}
+.split .media{border-radius:var(--radius-lg);overflow:hidden;border:1px solid var(--line);box-shadow:var(--shadow);aspect-ratio:4/3;background:var(--accent-soft)}
+.split .media img{width:100%;height:100%;object-fit:cover;display:block}
+.split.rev .txt{order:2}
+.split.rev .media{order:1}
+@media(max-width:760px){.split{grid-template-columns:1fr;gap:18px}.split.rev .txt,.split .txt{order:2}.split.rev .media,.split .media{order:1}}
+/* sources as cards */
+.sources{list-style:none;margin:16px 0 0;padding:0;display:grid;gap:10px}
+.sources li{margin:0}
+.sources li a{display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:14px 16px;text-decoration:none;color:var(--ink);font-weight:600;transition:transform .15s,box-shadow .15s,border-color .15s}
+.sources li a:hover{transform:translateY(-2px);box-shadow:var(--shadow);border-color:var(--accent);color:var(--accent-ink)}
+.sources li a::before{content:"↗";color:var(--accent);font-weight:700;font-family:var(--sans)}
+/* related as cards */
+.related-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-top:16px}
+.related-grid a{display:block;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:16px 18px;text-decoration:none;color:var(--ink);font-weight:600;transition:transform .15s,box-shadow .15s,border-color .15s}
+.related-grid a:hover{transform:translateY(-3px);box-shadow:var(--shadow);border-color:var(--accent);color:var(--accent-ink)}
+.related-grid a::after{content:" →";color:var(--accent)}
 
 /* footer (dark, bespoke) */
 footer.site{background:var(--ink);color:#aeb9c3;font-size:.92rem;border-top:4px solid var(--accent)}
