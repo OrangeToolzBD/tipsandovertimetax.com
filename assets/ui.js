@@ -1,4 +1,4 @@
-/* ui.js — mobile navigation: hamburger menu (when 2+ links) + floating tool button.
+/* ui.js - mobile navigation: hamburger menu (when 2+ links) + floating tool button.
    Progressive enhancement; desktop layout is unchanged. Shared across all pages. */
 (function () {
   function ready(fn) {
@@ -12,7 +12,7 @@
     var nav = header.querySelector('nav.site');
     var links = nav ? Array.prototype.slice.call(nav.querySelectorAll('a')) : [];
 
-    // Hamburger — only when there is more than one menu item.
+    // Hamburger - only when there is more than one menu item.
     if (nav && links.length >= 2 && !header.querySelector('.nav-toggle')) {
       var btn = document.createElement('button');
       btn.className = 'nav-toggle';
@@ -40,7 +40,7 @@
       });
     }
 
-    // Floating tool button — links to the primary tool (first menu item).
+    // Floating tool button - links to the primary tool (first menu item).
     var primary = links[0];
     if (primary && !document.querySelector('.fab-calc')) {
       var href = primary.getAttribute('href') || '';

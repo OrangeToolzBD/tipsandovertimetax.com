@@ -254,3 +254,5 @@ footer.site p:last-child{color:#7c8996;font-weight:600}
   .fab-calc:hover{background:var(--brand-ink)}
   body{padding-bottom:88px}
 }
+
+.ico-arr{display:inline-block;width:1em;height:1em;vertical-align:-.12em;margin-left:.4em;fill:none;stroke:currentColor;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}

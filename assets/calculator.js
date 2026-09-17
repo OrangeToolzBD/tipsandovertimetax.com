@@ -1,7 +1,7 @@
-/* calculator.js — tipsandovertimetax.com
- * Two tools: "overtime" and "tips". Federal income-tax deductions under the 2025 reconciliation act (tax years 2025–2028).
+/* calculator.js - tipsandovertimetax.com
+ * Two tools: "overtime" and "tips". Federal income-tax deductions under the 2025 reconciliation act (tax years 2025-2028).
  *
- * FIGURE STATUS (see README → Figures & verification):
+ * FIGURE STATUS (see README -> Figures & verification):
  *   VERIFIED on irs.gov 2026-09-14: tips cap $25,000 · overtime cap $12,500 ($25,000 joint) ·
  *     phase-out starts above MAGI $150,000 ($300,000 joint) · SSN required · married must file jointly.
  *   VERIFY_BEFORE_LAUNCH: the phase-out RATE ($100 per $1,000 of MAGI over the threshold) and whether the
@@ -17,7 +17,7 @@
     overtime_cap: { single: 12500, mfj: 25000 },   // VERIFIED irs.gov
     threshold: { single: 150000, mfj: 300000 },    // VERIFIED irs.gov
     PHASEOUT: { per: 1000, reduce: 100, whole_steps: false }, // VERIFY_BEFORE_LAUNCH
-    years: '2025–2028',
+    years: '2025-2028',
   };
 
   const reduction = (magi, status) => {
@@ -79,7 +79,7 @@
           { label: 'Deduction', value: fmt.money0(deduction), total: true },
         ],
         notes: [
-          `Applies to tax years ${RULES.years}. Reduces federal income tax only — Social Security, Medicare and most state taxes still apply.`,
+          `Applies to tax years ${RULES.years}. Reduces federal income tax only - Social Security, Medicare and most state taxes still apply.`,
           'You can claim it whether you itemize or take the standard deduction.',
         ],
       };
@@ -92,7 +92,7 @@
       { id: 'w2tips', label: 'Qualified tips reported on your W-2', type: 'number', prefix: '$', default: 12000, min: 0 },
       { id: 'setips', label: 'Qualified tips from self-employment (1099)', type: 'number', prefix: '$', default: 0, min: 0 },
       { id: 'senet', label: 'Net profit from that self-employed work', type: 'number', prefix: '$', default: 0, min: 0, showIf: s => (s.setips || 0) > 0,
-        help: 'Self-employed tips can’t exceed the net income of the business they came from.' },
+        help: 'Self-employed tips can\x27t exceed the net income of the business they came from.' },
       { id: 'occupation', label: 'My job is on the IRS list of occupations that customarily receive tips', type: 'checkbox', default: true },
       ...common,
     ],
@@ -120,7 +120,7 @@
           { label: 'Deduction', value: fmt.money0(deduction), total: true },
         ],
         notes: [
-          `Applies to tax years ${RULES.years}. Reduces federal income tax only — Social Security, Medicare and most state taxes still apply.`,
+          `Applies to tax years ${RULES.years}. Reduces federal income tax only - Social Security, Medicare and most state taxes still apply.`,
           'Tips must be voluntary (not automatic service charges) and reported. You can claim it whether you itemize or not.',
         ],
       };
@@ -131,19 +131,19 @@
     overtime, tips,
     __rules: RULES,
     __tests: [
-      { calc: 'overtime', name: '300 OT hours at $25 → $3,750 premium, under cap and threshold',
+      { calc: 'overtime', name: '300 OT hours at $25 -> $3,750 premium, under cap and threshold',
         input: { mode: 'hours', hourly: 25, hours: 300, status: 'single', magi: 65000, rate: '22', ssn: true },
         expect: { premium: 3750, deduction: 3750, saved: 825 } },
-      { calc: 'overtime', name: 'single premium above cap → capped at $12,500',
+      { calc: 'overtime', name: 'single premium above cap -> capped at $12,500',
         input: { mode: 'premium', premium: 20000, status: 'single', magi: 90000, rate: '22', ssn: true },
         expect: { capped: 12500, deduction: 12500 } },
-      { calc: 'overtime', name: 'single MAGI $160,000 → $1,000 reduction (VERIFY rate)',
+      { calc: 'overtime', name: 'single MAGI $160,000 -> $1,000 reduction (VERIFY rate)',
         input: { mode: 'premium', premium: 8000, status: 'single', magi: 160000, rate: '24', ssn: true },
         expect: { cut: 1000, deduction: 7000 } },
       { calc: 'overtime', name: 'joint cap $25,000',
         input: { mode: 'premium', premium: 30000, status: 'mfj', magi: 200000, rate: '22', ssn: true },
         expect: { deduction: 25000 } },
-      { calc: 'overtime', name: 'married filing separately → $0',
+      { calc: 'overtime', name: 'married filing separately -> $0',
         input: { mode: 'premium', premium: 5000, status: 'mfs', magi: 60000, rate: '22', ssn: true },
         expect: { deduction: 0 } },
       { calc: 'tips', name: 'W-2 tips $12,000',
@@ -152,10 +152,10 @@
       { calc: 'tips', name: 'self-employed tips limited to net profit',
         input: { w2tips: 5000, setips: 9000, senet: 4000, occupation: true, status: 'single', magi: 45000, rate: '12', ssn: true },
         expect: { qualified: 9000, deduction: 9000 } },
-      { calc: 'tips', name: 'tips above $25,000 cap, MAGI $400,000 joint → $10,000 reduction (VERIFY rate)',
+      { calc: 'tips', name: 'tips above $25,000 cap, MAGI $400,000 joint -> $10,000 reduction (VERIFY rate)',
         input: { w2tips: 40000, setips: 0, occupation: true, status: 'mfj', magi: 400000, rate: '32', ssn: true },
         expect: { capped: 25000, deduction: 15000 } },
-      { calc: 'tips', name: 'no SSN → $0',
+      { calc: 'tips', name: 'no SSN -> $0',
         input: { w2tips: 10000, setips: 0, occupation: true, status: 'single', magi: 40000, rate: '12', ssn: false },
         expect: { deduction: 0 } },
     ],

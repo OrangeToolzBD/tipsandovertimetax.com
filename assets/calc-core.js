@@ -1,5 +1,5 @@
 /*!
- * calc-core.js — the one calculator engine shared by all 13 sites. Vanilla JS, no build step, no deps.
+ * calc-core.js - the one calculator engine shared by all 13 sites. Vanilla JS, no build step, no deps.
  *
  * A site defines window.CALCS = { key: CALC, ... } in its own calculator.js, where:
  *   CALC = {
@@ -24,10 +24,10 @@
 
   const cur = C.currency || { code: 'USD', locale: 'en-US' };
   const fmt = {
-    money: v => (v == null || isNaN(v)) ? '—' : new Intl.NumberFormat(cur.locale, { style: 'currency', currency: cur.code, maximumFractionDigits: 2 }).format(v),
-    money0: v => (v == null || isNaN(v)) ? '—' : new Intl.NumberFormat(cur.locale, { style: 'currency', currency: cur.code, maximumFractionDigits: 0 }).format(v),
-    pct: v => (v == null || isNaN(v)) ? '—' : `${(Math.round(v * 10) / 10).toLocaleString(cur.locale)}%`,
-    num: v => (v == null || isNaN(v)) ? '—' : Number(v).toLocaleString(cur.locale, { maximumFractionDigits: 2 }),
+    money: v => (v == null || isNaN(v)) ? '-' : new Intl.NumberFormat(cur.locale, { style: 'currency', currency: cur.code, maximumFractionDigits: 2 }).format(v),
+    money0: v => (v == null || isNaN(v)) ? '-' : new Intl.NumberFormat(cur.locale, { style: 'currency', currency: cur.code, maximumFractionDigits: 0 }).format(v),
+    pct: v => (v == null || isNaN(v)) ? '-' : `${(Math.round(v * 10) / 10).toLocaleString(cur.locale)}%`,
+    num: v => (v == null || isNaN(v)) ? '-' : Number(v).toLocaleString(cur.locale, { maximumFractionDigits: 2 }),
   };
   window.CALC_FMT = fmt;
 
@@ -76,7 +76,7 @@
     } else if (i.type === 'select') {
       wrap.append(el('label', { for: id, text: i.label }));
       const s = el('select', { id, onchange: e => { state[i.id] = e.target.value; rebuild(); } });
-      const opts = typeof i.options === 'function' ? i.options(state) : i.options;   // options may depend on another field (state → city)
+      const opts = typeof i.options === 'function' ? i.options(state) : i.options;   // options may depend on another field (state -> city)
       if (!opts.some(o => String(o.value) === String(state[i.id]))) state[i.id] = opts.length ? opts[0].value : '';
       for (const o of opts) s.append(el('option', { value: o.value, selected: String(state[i.id]) === String(o.value) }, o.label));
       wrap.append(s);
