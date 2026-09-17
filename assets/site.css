@@ -28,8 +28,8 @@ h1,h2,h3{font-family:var(--serif);font-weight:600;line-height:1.1;letter-spacing
 /* header */
 header.site{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--paper) 82%,transparent);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
 header.site .wrap{display:flex;align-items:center;justify-content:space-between;min-height:66px;gap:16px;flex-wrap:wrap}
-.logo{font-family:var(--serif);font-weight:700;font-size:1.3rem;letter-spacing:-.02em;text-decoration:none;color:var(--ink);display:inline-flex;align-items:center;gap:10px}
-.logo::before{content:"";width:40px;height:40px;background:url(logo.png) center/contain no-repeat;flex:none}
+.logo{display:block;height:40px;width:151px;max-width:60vw;background:url(logo-full.png) left center/contain no-repeat;text-indent:-9999px;white-space:nowrap;overflow:hidden}
+.logo::before{content:none}
 nav.site{display:flex;flex-wrap:wrap;gap:2px}
 nav.site a{text-decoration:none;color:var(--muted);font-weight:600;font-size:.95rem;padding:8px 14px;border-radius:40px;transition:color .15s,background .15s}
 nav.site a:hover{color:var(--accent-ink);background:var(--accent-soft)}
@@ -67,7 +67,7 @@ p{margin:0 0 14px}
 .chip .spark i.on{background:var(--accent)}
 
 /* section rhythm */
-.section{padding:56px 0}
+.section{padding:74px 0}
 .section.alt{background:var(--surface);border-block:1px solid var(--line)}
 .section.ink{background:var(--ink);color:#e7ecf0}
 .kicker{font-family:var(--sans);text-transform:uppercase;letter-spacing:.15em;font-weight:700;font-size:.74rem;color:var(--accent-ink);margin:0 0 8px}
@@ -119,7 +119,7 @@ p{margin:0 0 14px}
 main>.wrap{padding-bottom:40px}
 .answer{font-family:var(--serif);font-size:1.22rem;line-height:1.5;font-weight:500;background:var(--gold-soft);border-left:4px solid var(--gold);padding:18px 20px;border-radius:0 var(--radius) var(--radius) 0;margin:6px 0 14px}
 .updated{color:var(--muted);font-size:.9rem;margin:0 0 20px}
-main>.wrap>h2{margin:38px 0 12px}
+main>.wrap>h2{margin:58px 0 14px}
 main>.wrap>h3{margin:24px 0 8px}
 
 /* calculator engine */
@@ -179,7 +179,7 @@ table.data th{background:var(--paper);font-weight:700}
 .disclaimer{font-size:.88rem;color:var(--muted);background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);margin-top:30px;padding:14px 16px}
 .ad-slot{min-height:0}
 /* alternating content + image sections */
-.split{display:grid;grid-template-columns:1.05fr .95fr;gap:34px;align-items:center;margin:34px 0}
+.split{display:grid;grid-template-columns:1.05fr .95fr;gap:34px;align-items:center;margin:58px 0}
 .split .txt>h2{margin-top:0}
 .split .txt>p:last-child{margin-bottom:0}
 .split .media{border-radius:var(--radius-lg);overflow:hidden;border:1px solid var(--line);box-shadow:var(--shadow);aspect-ratio:4/3;background:var(--accent-soft)}
