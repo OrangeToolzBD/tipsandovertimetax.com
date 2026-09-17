@@ -1,0 +1,244 @@
+name: Build and Deploy to R2
+
+on:
+  push:
+    branches: [production]
+  # Manual re-trigger from the Actions tab — lets you re-run a stuck/queued deploy
+  # without pushing an empty commit.
+  workflow_dispatch:
+
+concurrency:
+  group: r2-deploy-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ── Build & upload ──────────────────────────────────────────────────────────
+  build-and-upload:
+    runs-on: [self-hosted, Linux, X64, ot-general]
+    timeout-minutes: 30
+    env:
+      VITE_SITE_URL: ${{ vars.VITE_SITE_URL }}
+      VITE_INDEXABLE: ${{ vars.VITE_INDEXABLE }}
+      # "true" for pre-built repos: skip install/build, just upload the repo root.
+      UPLOAD_ONLY: ${{ vars.UPLOAD_ONLY }}
+    steps:
+      - uses: actions/checkout@v4
+
+      # R2 config travels with the repo, not the runner — the general pool has no
+      # credentials baked in. Fail here with an actionable message rather than deep
+      # inside `aws s3api head-bucket`, which reports every cause identically.
+      - name: Verify R2 configuration
+        env:
+          R2_BUCKET: ${{ vars.R2_BUCKET }}
+          CF_ACCOUNT_ID: ${{ vars.CF_ACCOUNT_ID }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+        run: |
+          missing=""
+          [ -n "$R2_BUCKET" ]            || missing="$missing R2_BUCKET(var)"
+          [ -n "$CF_ACCOUNT_ID" ]        || missing="$missing CF_ACCOUNT_ID(var)"
+          [ -n "$R2_ACCESS_KEY_ID" ]     || missing="$missing R2_ACCESS_KEY_ID(secret)"
+          [ -n "$R2_SECRET_ACCESS_KEY" ] || missing="$missing R2_SECRET_ACCESS_KEY(secret)"
+          if [ -n "$missing" ]; then
+            echo "::error::Missing R2 config:$missing"
+            echo "This repo predates per-repo R2 credentials. Re-onboard it:"
+            echo "  ./site-deploy.sh github <repo-url>"
+            exit 1
+          fi
+          echo "R2 config present (bucket=$R2_BUCKET account=$CF_ACCOUNT_ID)"
+
+      - name: Cache bun install
+        if: ${{ vars.UPLOAD_ONLY != 'true' }}
+        uses: actions/cache@v4
+        with:
+          path: ~/.bun/install/cache
+          key: bun-${{ runner.os }}-${{ hashFiles('**/bun.lockb', '**/bun.lock') }}
+          restore-keys: bun-${{ runner.os }}-
+
+      - name: Install dependencies
+        if: ${{ vars.UPLOAD_ONLY != 'true' }}
+        # Fall back to a plain install when the committed lockfile predates package.json.
+        # Generated repos ship that combination regularly, and a frozen install refuses to
+        # mutate the lockfile and fails the whole deploy. The onboarding script used to fix
+        # this by running `bun install` in a local clone and committing the result — which
+        # is the ONLY reason that pipeline needed a checkout at all. Falling back here is
+        # what lets the platform drive the whole flow through the GitHub API with no clone,
+        # no disk and no cleanup. Local mode has always had this same fallback.
+        run: |
+          bun install --frozen-lockfile 2>&1 | tee -a build.log \
+            || bun install 2>&1 | tee -a build.log
+
+      - name: Pre-build webhook
+        if: ${{ vars.PREBUILD_WEBHOOK_URL != '' }}
+        run: curl -fsS --max-time 15 -X POST "${{ vars.PREBUILD_WEBHOOK_URL }}"
+
+      - name: Build (if enabled) and upload to R2
+        env:
+          # build-upload-s3.sh reads these three from the environment. CI=true is set
+          # by Actions, so its interactive confirm gate is already satisfied.
+          CF_ACCOUNT_ID: ${{ vars.CF_ACCOUNT_ID }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+        run: |
+          set -o pipefail
+          chmod +x ./build-upload-s3.sh
+          ./build-upload-s3.sh "${{ vars.R2_BUCKET }}" "${{ vars.R2_PREFIX }}" "${VITE_SITE_URL}" 2>&1 | tee -a build.log
+
+      - name: Capture build log on failure
+        if: failure()
+        env:
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+        run: |
+          # Keep only the tail so the artifact (and the Discord message) stays small.
+          tail -n 200 build.log > build-log-tail.txt 2>/dev/null || echo "(no build.log captured)" > build-log-tail.txt
+          # GitHub masks secrets in the rendered web log but NOT in files a step
+          # writes, and this tail becomes an artifact and a Discord message. Scrub
+          # the key values by exact match — read from ENVIRON so they never appear
+          # in argv. Nothing here echoes them today; this is defense in depth.
+          awk 'BEGIN { a = ENVIRON["R2_ACCESS_KEY_ID"]; b = ENVIRON["R2_SECRET_ACCESS_KEY"] }
+               { if (a != "") gsub(a, "[redacted]"); if (b != "") gsub(b, "[redacted]"); print }' \
+            build-log-tail.txt > build-log-tail.redacted && mv build-log-tail.redacted build-log-tail.txt
+
+      - name: Upload build log artifact
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-log
+          path: build-log-tail.txt
+          retention-days: 7
+          if-no-files-found: ignore
+
+      - name: Post-build webhook
+        if: ${{ vars.POSTBUILD_WEBHOOK_URL != '' }}
+        run: curl -fsS --max-time 15 -X POST "${{ vars.POSTBUILD_WEBHOOK_URL }}"
+
+      - name: Deploy webhook
+        if: ${{ vars.DEPLOY_WEBHOOK_URL != '' }}
+        env:
+          DEPLOY_WEBHOOK_URL: ${{ vars.DEPLOY_WEBHOOK_URL }}
+          DEPLOY_WEBHOOK_SECRET: ${{ secrets.DEPLOY_WEBHOOK_SECRET }}
+          R2_PREFIX: ${{ vars.R2_PREFIX }}
+          SITE_GROUP: ${{ vars.SITE_GROUP }}
+          SITE_PROFILE: ${{ vars.SITE_PROFILE }}
+          CF_ACCOUNT_ID: ${{ vars.CF_ACCOUNT_ID }}
+        run: |
+          # Payload contract: domain, group (SITE_GROUP), profile (SITE_PROFILE),
+          # cf_account (CF_ACCOUNT_ID).
+          #
+          # cf_account is the account this job just uploaded to, and it is the ONLY field
+          # here the fleet cannot work out for itself. For a domain already in the fleet it
+          # is ignored — that site's account is authoritative. For a brand-new domain it is
+          # pinned onto the row the webhook creates, so the zone is provisioned in the same
+          # account as the content instead of the least-loaded one; otherwise the site would
+          # serve the parked page forever while its content sat in another account's bucket.
+          curl -fsS --max-time 15 -X POST "$DEPLOY_WEBHOOK_URL" \
+            -H "authorization: Bearer $DEPLOY_WEBHOOK_SECRET" \
+            -H "content-type: application/json" \
+            -d "{\"domain\":\"${R2_PREFIX}\",\"group\":\"${SITE_GROUP}\",\"profile\":\"${SITE_PROFILE}\",\"cf_account\":\"${CF_ACCOUNT_ID}\"}"
+
+  # ── Notify ──────────────────────────────────────────────────────────────────
+  # Runs on the general self-hosted pool and always fires once the build reaches a
+  # terminal state (success / failure / cancelled). Single, reusable Discord
+  # message path. Needs `curl` and `jq` on the runner.
+  notify:
+    needs: [build-and-upload]
+    if: always()
+    runs-on: [self-hosted, Linux, X64, ot-general]
+    steps:
+      - name: Download build log (failure only)
+        if: ${{ needs.build-and-upload.result == 'failure' }}
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          name: build-log
+          path: build-log
+
+      - name: Send Discord notification
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          RESULT: ${{ needs.build-and-upload.result }}
+          REPO_URL: ${{ github.server_url }}/${{ github.repository }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          COMMIT_URL: ${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}
+          COMMIT_MSG: ${{ github.event.head_commit.message }}
+          SITE_URL: ${{ vars.VITE_SITE_URL }}
+          SITE_GROUP: ${{ vars.SITE_GROUP }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${DISCORD_WEBHOOK_URL:-}" ]; then
+            echo "DISCORD_WEBHOOK_URL not set — skipping notification."
+            exit 0
+          fi
+
+          short_sha="${GITHUB_SHA:0:7}"
+          # First line of the commit message, safely truncated.
+          commit_subject="$(printf '%s' "${COMMIT_MSG:-}" | head -n1 | cut -c1-200)"
+          [ -z "$commit_subject" ] && commit_subject="(manual dispatch — no commit message)"
+
+          case "$RESULT" in
+            success)
+              title="✅ Deploy succeeded"
+              color=3066993   # green
+              ;;
+            failure)
+              title="❌ Deploy failed"
+              color=15158332  # red
+              ;;
+            cancelled)
+              title="⚠️ Deploy cancelled"
+              color=9807270   # grey
+              ;;
+            *)
+              title="ℹ️ Deploy finished (${RESULT})"
+              color=9807270
+              ;;
+          esac
+
+          # On failure, include the tail of the build log as the error message.
+          error_block=""
+          if [ "$RESULT" = "failure" ] && [ -f build-log/build-log-tail.txt ]; then
+            # Discord embed description limit is 4096 chars — keep well under it.
+            error_block="$(tail -c 1500 build-log/build-log-tail.txt)"
+          fi
+
+          description="**Site:** ${SITE_URL:-n/a}"
+          if [ -n "$error_block" ]; then
+            description="${description}"$'\n\n'"**Error (build log tail):**"$'\n'"\`\`\`"$'\n'"${error_block}"$'\n'"\`\`\`"
+          fi
+
+          payload="$(jq -n \
+            --arg title   "$title" \
+            --arg desc    "$description" \
+            --arg repo    "$GITHUB_REPOSITORY" \
+            --arg repourl "$REPO_URL" \
+            --arg branch  "$GITHUB_REF_NAME" \
+            --arg sha     "$short_sha" \
+            --arg commit  "$commit_subject" \
+            --arg commiturl "$COMMIT_URL" \
+            --arg actor   "$GITHUB_ACTOR" \
+            --arg runurl  "$RUN_URL" \
+            --arg group   "${SITE_GROUP:-n/a}" \
+            --argjson color "$color" \
+            '{
+              username: "R2 Deploy Bot",
+              embeds: [{
+                title: ($title + " — " + $repo),
+                description: $desc,
+                url: $runurl,
+                color: $color,
+                fields: [
+                  { name: "Repository",   value: ("[" + $repo + "](" + $repourl + ")"), inline: true },
+                  { name: "Branch",       value: $branch, inline: true },
+                  { name: "Group",        value: $group, inline: true },
+                  { name: "Triggered by", value: $actor, inline: true },
+                  { name: "Commit",       value: ("[" + $sha + "](" + $commiturl + ") " + $commit), inline: false },
+                  { name: "Run",          value: ("[View logs](" + $runurl + ")"), inline: false }
+                ]
+              }]
+            }')"
+
+          curl -fsS --max-time 15 -X POST "$DISCORD_WEBHOOK_URL" \
+            -H "content-type: application/json" \
+            -d "$payload"
