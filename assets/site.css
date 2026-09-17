@@ -250,7 +250,7 @@ footer.site p:last-child{color:#7c8996;font-weight:600}
   header.site.nav-open nav.site{display:flex}
   nav.site a{margin:0;border-radius:8px;padding:12px 10px;font-size:1rem;border-bottom:1px solid var(--line)}
   nav.site a:last-child{border-bottom:0}
-  .fab-calc{display:flex;align-items:center;justify-content:center;gap:9px;position:fixed;left:16px;right:16px;bottom:16px;z-index:70;background:var(--brand);color:#fff;font-weight:700;font-size:1.02rem;text-decoration:none;padding:15px 24px;border-radius:14px;box-shadow:0 10px 26px rgba(20,26,40,.28)}
+  .fab-calc{display:flex;align-items:center;justify-content:center;gap:9px;position:fixed;left:16px;right:16px;bottom:16px;z-index:70;background:var(--brand);color:#fff;font-weight:700;font-size:1.02rem;text-decoration:none;padding:15px 24px;border-radius:999px;box-shadow:0 10px 26px rgba(20,26,40,.28)}
   .fab-calc:hover{background:var(--brand-ink)}
   body{padding-bottom:88px}
 }
