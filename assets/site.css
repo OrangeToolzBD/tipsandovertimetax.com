@@ -179,14 +179,14 @@ table.data th{background:var(--paper);font-weight:700}
 .disclaimer{font-size:.88rem;color:var(--muted);background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);margin-top:30px;padding:14px 16px}
 .ad-slot{min-height:0}
 /* alternating content + image sections */
-.split{display:grid;grid-template-columns:1.05fr .95fr;gap:34px;align-items:center;margin:58px 0}
+.split{display:grid;grid-template-columns:1.05fr .95fr;gap:34px;align-items:center;margin:100px 0}
 .split .txt>h2{margin-top:0}
 .split .txt>p:last-child{margin-bottom:0}
 .split .media{border-radius:var(--radius-lg);overflow:hidden;border:1px solid var(--line);box-shadow:var(--shadow);aspect-ratio:4/3;background:var(--accent-soft)}
 .split .media img{width:100%;height:100%;object-fit:cover;display:block}
 .split.rev .txt{order:2}
 .split.rev .media{order:1}
-@media(max-width:760px){.split{grid-template-columns:1fr;gap:18px}.split.rev .txt,.split .txt{order:2}.split.rev .media,.split .media{order:1}}
+@media(max-width:760px){.split{grid-template-columns:1fr;gap:18px;margin:60px 0}.split.rev .txt,.split .txt{order:2}.split.rev .media,.split .media{order:1}}
 /* sources as cards */
 .sources{list-style:none;margin:16px 0 0;padding:0;display:grid;gap:10px}
 .sources li{margin:0}
