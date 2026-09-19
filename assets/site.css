@@ -28,7 +28,7 @@ h1,h2,h3{font-family:var(--serif);font-weight:600;line-height:1.1;letter-spacing
 /* header */
 header.site{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--paper) 82%,transparent);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
 header.site .wrap{display:flex;align-items:center;justify-content:space-between;min-height:66px;gap:16px;flex-wrap:wrap}
-.logo{display:block;height:40px;width:151px;max-width:60vw;background:url(logo-full.png) left center/contain no-repeat;text-indent:-9999px;white-space:nowrap;overflow:hidden}
+.logo{display:block;height:38px;width:104px;max-width:60vw;background:url(logo-full.png) left center/contain no-repeat;text-indent:-9999px;white-space:nowrap;overflow:hidden}
 .logo::before{content:none}
 nav.site{display:flex;flex-wrap:wrap;gap:2px}
 nav.site a{text-decoration:none;color:var(--muted);font-weight:600;font-size:.95rem;padding:8px 14px;border-radius:40px;transition:color .15s,background .15s}
