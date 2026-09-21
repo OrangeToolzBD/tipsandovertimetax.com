@@ -59,5 +59,21 @@
         document.body.appendChild(fab);
       }
     }
+
+    // Scroll-reveal for inner-page content blocks (home pages already animate via .reveal/.lp-reveal).
+    if ('IntersectionObserver' in window && !(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches)) {
+      var targets = document.querySelectorAll('main .split:not(.reveal):not(.lp-reveal), main .calc-table-wrap, main > .wrap > .faq, main > .wrap > ul.sources');
+      if (targets.length) {
+        var vh = window.innerHeight || document.documentElement.clientHeight;
+        var io = new IntersectionObserver(function (es) {
+          es.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
+        }, { rootMargin: '0px 0px -8% 0px' });
+        targets.forEach(function (el) {
+          var r = el.getBoundingClientRect();
+          if (r.top < vh * 0.9) { el.classList.add('reveal-up', 'in'); } // already visible: reveal without hiding (no flash)
+          else { el.classList.add('reveal-up'); io.observe(el); }
+        });
+      }
+    }
   });
 })();
